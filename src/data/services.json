@@ -1,0 +1,47 @@
+[
+  {
+    "id": 1,
+    "name": "Corte de cabello clásico",
+    "description": "Corte de cabello personalizado según el estilo del cliente",
+    "duration": 30,
+    "price": 9500,
+    "category": "corte",
+    "available": true
+  },
+  {
+    "id": 2,
+    "name": "Coloración completa",
+    "description": "Aplicación de color en todo el cabello con productos profesionales",
+    "duration": 90,
+    "price": 13000,
+    "category": "color",
+    "available": false
+  },
+  {
+    "id": 3,
+    "name": "Peinado para eventos",
+    "description": "Peinado de fiesta o evento especial, incluye ondas o recogido",
+    "duration": 60,
+    "price": 40000,
+    "category": "peinado",
+    "available": true
+  },
+  {
+    "id": 4,
+    "name": "Tratamiento de hidratación",
+    "description": "Tratamiento profundo para nutrir e hidratar el cabello",
+    "duration": 45,
+    "price": 6500,
+    "category": "tratamiento",
+    "available": true
+  },
+  {
+    "id": 6,
+    "name": "Alisado con keratina",
+    "description": "Tratamiento de alisado progresivo con keratina",
+    "duration": 120,
+    "price": 15000,
+    "category": "tratamiento",
+    "available": true
+  }
+]
