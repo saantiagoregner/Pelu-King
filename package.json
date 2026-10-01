@@ -1,23 +1,25 @@
 {
   "name": "peluking-backend",
-  "version": "1.0.0",
-  "description": "API para gestión de servicios de la peluquería Peluking - sistema de turnos y reservas",
-  "main": "src/app.js",
+  "version": "2.0.0",
+  "description": "API REST para gestión de servicios de la peluquería Peluking - sistema de turnos y reservas",
+  "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "start": "node src/app.js",
-    "dev": "node --watch src/app.js"
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
   },
   "keywords": [
     "peluking",
     "peluqueria",
     "turnos",
     "backend",
-    "nodejs"
+    "nodejs",
+    "express"
   ],
   "author": "Santiago",
   "license": "ISC",
   "dependencies": {
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "express": "^5.1.0"
   }
 }

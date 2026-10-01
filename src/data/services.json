@@ -43,5 +43,23 @@
     "price": 15000,
     "category": "tratamiento",
     "available": true
+  },
+  {
+    "id": 7,
+    "name": "Alisado con keratina",
+    "description": "Tratamiento de alisado progresivo con keratina",
+    "duration": 120,
+    "price": 15000,
+    "category": "tratamiento",
+    "available": true
+  },
+  {
+    "id": 8,
+    "name": "Alisado con keratina",
+    "description": "Tratamiento de alisado progresivo con keratina",
+    "duration": 120,
+    "price": 15000,
+    "category": "tratamiento",
+    "available": true
   }
 ]

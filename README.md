@@ -1,8 +1,8 @@
 # Peluking Backend 💈
 
-Backend para **Peluking**, una peluquería que necesita un sistema para gestionar sus servicios dentro de una futura plataforma de turnos y reservas.
+API REST con **Express** para **Peluking**, una peluquería que necesita un sistema para gestionar sus servicios dentro de una futura plataforma de turnos y reservas.
 
-Este proyecto es la pre-entrega del curso **Programación Backend I: Desarrollo Avanzado de Backend**, y su objetivo es implementar una clase `ServiceManager` que permita crear, leer, actualizar y eliminar los servicios que ofrece la peluquería (cortes, coloración, peinados, tratamientos, etc.).
+Este proyecto corresponde a la segunda pre-entrega del curso **Programación Backend I: Desarrollo Avanzado de Backend**. Expone endpoints para gestionar el recurso `services`, conectados con la clase `ServiceManager` de la entrega anterior.
 
 ## 📁 Estructura del proyecto
 
@@ -13,9 +13,12 @@ peluking-backend/
 │   │   └── env.config.js
 │   ├── managers/
 │   │   └── ServiceManager.js
+│   ├── routes/
+│   │   └── services.router.js
 │   ├── data/
 │   │   └── services.json
-│   └── app.js
+│   ├── app.js
+│   └── server.js
 ├── package.json
 ├── .env.example
 ├── .gitignore
@@ -25,46 +28,48 @@ peluking-backend/
 ## ⚙️ Instalación
 
 1. Cloná el repositorio:
-   ```bash
-   git clone <URL_DEL_REPO>
-   cd peluking-backend
-   ```
+
+```
+git clone <URL_DEL_REPO>
+cd peluking-backend
+```
+
 2. Instalá las dependencias:
-   ```bash
-   npm install
-   ```
+
+```
+npm install
+```
+
 3. Creá tu archivo `.env` en base al `.env.example`:
-   ```bash
-   cp .env.example .env
-   ```
-   Y completá los valores (ver sección de variables de entorno).
+
+```
+cp .env.example .env
+```
 
 ## ▶️ Cómo ejecutar
 
-```bash
+```
 npm start
 ```
 
-Esto corre `src/app.js`, que muestra por consola una demo de uso de todos los métodos de `ServiceManager` (obtener, buscar, agregar, actualizar y eliminar servicios).
+Modo watch (reinicia automáticamente al guardar cambios):
 
-También podés usar el modo watch (reinicia automáticamente al guardar cambios):
-
-```bash
+```
 npm run dev
 ```
 
+El servidor queda escuchando en `http://localhost:<PORT>`.
+
 ## 🔑 Variables de entorno
 
-| Variable   | Descripción                                | Ejemplo     |
-|------------|---------------------------------------------|-------------|
-| `PORT`     | Puerto en el que corre la aplicación         | `8080`      |
-| `NODE_ENV` | Entorno de ejecución de la aplicación        | `development` |
+| Variable   | Descripción                           | Ejemplo       |
+| ---------- | ------------------------------------- | ------------- |
+| `PORT`     | Puerto en el que corre la aplicación  | `8080`        |
+| `NODE_ENV` | Entorno de ejecución de la aplicación | `development` |
 
 Si falta alguna variable requerida, la aplicación no inicia y muestra un mensaje de error indicando cuál falta.
 
 ## 💇 Recurso: `services`
-
-Cada servicio de la peluquería tiene la siguiente forma:
 
 ```json
 {
@@ -72,75 +77,82 @@ Cada servicio de la peluquería tiene la siguiente forma:
   "name": "Corte de cabello clásico",
   "description": "Corte de cabello personalizado según el estilo del cliente",
   "duration": 30,
-  "price": 4500,
+  "price": 9500,
   "category": "corte",
   "available": true
 }
 ```
 
-| Campo         | Tipo    | Descripción                                      |
-|---------------|---------|---------------------------------------------------|
+| Campo         | Tipo    | Descripción                                       |
+| ------------- | ------- | ------------------------------------------------- |
 | `id`          | number  | Identificador único, generado automáticamente     |
 | `name`        | string  | Nombre del servicio                               |
 | `description` | string  | Descripción del servicio                          |
 | `duration`    | number  | Duración estimada en minutos                      |
 | `price`       | number  | Precio del servicio                               |
 | `category`    | string  | Categoría (corte, color, peinado, tratamiento...) |
-| `available`   | boolean | Si el servicio está disponible para reservar       |
+| `available`   | boolean | Si el servicio está disponible para reservar      |
 
-## 🧩 Métodos de `ServiceManager`
+## 🌐 Endpoints
 
-Todos los métodos son asíncronos y devuelven una `Promise`.
+| Método   | Ruta                 | Descripción                                   | Códigos       |
+| -------- | -------------------- | --------------------------------------------- | ------------- |
+| `GET`    | `/api/services`      | Lista los servicios (acepta filtros)          | 200, 400      |
+| `GET`    | `/api/services/:sid` | Devuelve un servicio por id                   | 200, 404      |
+| `POST`   | `/api/services`      | Crea un servicio                              | 201, 400      |
+| `PUT`    | `/api/services/:sid` | Actualiza un servicio (el `id` no se modifica)| 200, 400, 404 |
+| `DELETE` | `/api/services/:sid` | Elimina un servicio                           | 200, 404      |
 
-### `getServices()`
-Devuelve un array con todos los servicios.
+Las respuestas tienen el formato `{ "status": "success", "payload": ... }` o `{ "status": "error", "message": "..." }`.
 
-```js
-const services = await serviceManager.getServices();
+### `GET /api/services`
+
+Devuelve todos los servicios. Filtros opcionales por query params:
+
+- `category`: filtra por categoría. Ejemplo: `/api/services?category=tratamiento`
+- `available`: `true` o `false`. Ejemplo: `/api/services?available=true`
+
+Se pueden combinar: `/api/services?category=tratamiento&available=true`
+
+### `GET /api/services/:sid`
+
+Devuelve el servicio con ese id. Responde `404` si no existe.
+
+### `POST /api/services`
+
+Crea un servicio. El `id` se genera automáticamente, **no** hay que enviarlo. Responde `201` con el servicio creado, o `400` si faltan campos.
+
+```json
+{
+  "name": "Alisado con keratina",
+  "description": "Tratamiento de alisado progresivo con keratina",
+  "duration": 120,
+  "price": 15000,
+  "category": "tratamiento",
+  "available": true
+}
 ```
 
-### `getServiceById(id)`
-Busca un servicio por su id. Si no existe, devuelve un objeto con `error`.
+### `PUT /api/services/:sid`
 
-```js
-const service = await serviceManager.getServiceById(1);
+Actualiza los campos enviados en el body. El `id` se ignora si viene en el body. Responde `404` si el servicio no existe, y `400` si el body está vacío.
+
+```json
+{
+  "price": 13000,
+  "available": false
+}
 ```
 
-### `addService(serviceData)`
-Agrega un nuevo servicio. El `id` se genera internamente, **no** se recibe como parámetro. Valida que estén presentes `name`, `description`, `duration`, `price`, `category` y `available`; si falta alguno, devuelve un objeto con `error` y no agrega el servicio.
+### `DELETE /api/services/:sid`
 
-```js
-const newService = await serviceManager.addService({
-  name: "Alisado con keratina",
-  description: "Tratamiento de alisado progresivo con keratina",
-  duration: 120,
-  price: 15000,
-  category: "tratamiento",
-  available: true,
-});
-```
-
-### `updateService(id, updatedData)`
-Actualiza los campos indicados de un servicio existente. No permite modificar el `id` (si se envía, se ignora). Devuelve un objeto con `error` si el servicio no existe.
-
-```js
-const updated = await serviceManager.updateService(2, {
-  price: 13000,
-  available: false,
-});
-```
-
-### `deleteService(id)`
-Elimina un servicio por su id. Devuelve un objeto con `error` si no existe.
-
-```js
-const result = await serviceManager.deleteService(5);
-```
+Elimina el servicio. Responde `404` si no existe.
 
 ## 🛠️ Tecnologías
 
 - Node.js con módulos ES (ESM)
-- [dotenv](https://www.npmjs.com/package/dotenv) para variables de entorno
+- [Express](https://expressjs.com/)
+- [dotenv](https://www.npmjs.com/package/dotenv)
 
 ## 👤 Autor
 
