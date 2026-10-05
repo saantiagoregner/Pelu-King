@@ -1,14 +1,15 @@
 {
   "name": "peluking-api",
   "version": "1.0.0",
-  "description": "API REST de turnos y reservas con Express y FileSystem",
-  "main": "src/app.js",
+  "description": "API REST de turnos y reservas con Express y FileSystem, organizada en routers, controllers y managers",
+  "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "start": "node src/app.js",
-    "dev": "node --watch src/app.js"
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
   },
   "dependencies": {
+    "dotenv": "^16.4.7",
     "express": "^4.21.2"
   }
 }
