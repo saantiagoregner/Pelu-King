@@ -40,8 +40,21 @@ export default class ServiceManager {
       available,
     };
   }
-  async getServices() {
-    return await this.#readFile();
+  async getServices({ category, available } = {}) {
+    let services = await this.#readFile();
+    if (category !== undefined) {
+      if (typeof category !== "string" || !category.trim())
+        throw new HttpError(400, "category debe ser un string no vacío");
+      const wanted = category.trim().toLowerCase();
+      services = services.filter((s) => s.category.toLowerCase() === wanted);
+    }
+    if (available !== undefined) {
+      if (available !== "true" && available !== "false")
+        throw new HttpError(400, "available debe ser true o false");
+      const wanted = available === "true";
+      services = services.filter((s) => s.available === wanted);
+    }
+    return services;
   }
   async getServiceById(id) {
     const services = await this.#readFile();
