@@ -1,34 +1,9 @@
-import { config } from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
-// Carga las variables definidas en el archivo .env
-config();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Variables de entorno requeridas para que la app pueda iniciar
-const REQUIRED_ENV_VARS = ["PORT", "NODE_ENV"];
+export const PORT = process.env.PORT || 8080;
 
-/**
- * Valida que todas las variables de entorno requeridas existan.
- * Si falta alguna, corta la ejecución de la app con un mensaje claro.
- */
-function validateEnv() {
-  const missingVars = REQUIRED_ENV_VARS.filter(
-    (varName) => !process.env[varName]
-  );
-
-  if (missingVars.length > 0) {
-    console.error(
-      `❌ Error de configuración: faltan las siguientes variables de entorno: ${missingVars.join(
-        ", "
-      )}.\n` +
-        `Revisá tu archivo .env (podés basarte en .env.example) y volvé a intentar.`
-    );
-    process.exit(1);
-  }
-}
-
-validateEnv();
-
-export const env = {
-  port: process.env.PORT,
-  nodeEnv: process.env.NODE_ENV,
-};
+export const SERVICES_PATH = path.join(__dirname, "../data/services.json");
+export const BOOKINGS_PATH = path.join(__dirname, "../data/bookings.json");
