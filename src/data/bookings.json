@@ -1,16 +1,1 @@
-[
-  {
-    "id": "90f7821b-9551-409a-82fd-f29429a1e61d",
-    "clientName": "Juan Pérez",
-    "clientEmail": "juan@mail.com",
-    "date": "2026-10-15",
-    "time": "16:30",
-    "status": "pending",
-    "services": [
-      {
-        "service": "2ec25258-129c-4ba1-8716-f63c08d48347",
-        "quantity": 2
-      }
-    ]
-  }
-]
+[]
