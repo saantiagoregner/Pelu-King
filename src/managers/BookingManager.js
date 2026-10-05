@@ -3,9 +3,8 @@ import crypto from "crypto";
 import { HttpError } from "../utils/httpError.js";
 const VALID_STATUS = ["pending", "confirmed", "cancelled"];
 export default class BookingManager {
-constructor(path, serviceManager) {
+constructor(path) {
     this.path = path;
-    this.serviceManager = serviceManager;
 }
 async #readFile() {
     try {
@@ -31,7 +30,13 @@ async #writeFile(data) {
     throw new HttpError(400, "time debe tener formato HH:MM (24hs)");
     if (!VALID_STATUS.includes(status))
     throw new HttpError(400, `status debe ser uno de: ${VALID_STATUS.join(", ")}`);
-    return { clientName: clientName.trim(), clientEmail: clientEmail.trim(), date, time, status };
+    return {
+    clientName: clientName.trim(),
+    clientEmail: clientEmail.trim(),
+    date,
+    time,
+    status,
+    };
 }
 async createBooking(data) {
     const validated = this.#validate(data);
@@ -48,7 +53,6 @@ async getBookingById(id) {
     return booking;
 }
 async addServiceToBooking(bid, sid) {
-    await this.serviceManager.getServiceById(sid);
     const bookings = await this.#readFile();
     const booking = bookings.find((b) => b.id === bid);
     if (!booking) throw new HttpError(404, `No existe la reserva con id ${bid}`);
