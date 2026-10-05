@@ -1,116 +1,77 @@
-import { readFile, writeFile } from "fs/promises";
-import { fileURLToPath } from "url";
-import path from "path";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const servicesPath = path.join(__dirname, "..", "data", "services.json");
-const REQUIRED_FIELDS = [
-  "name",
-  "description",
-  "duration",
-  "price",
-  "category",
-  "available",
-];
-
-export class ServiceManager {
-  constructor() {
-    this.path = servicesPath;
+import fs from "fs/promises";
+import crypto from "crypto";
+import { HttpError } from "../utils/httpError.js";
+export default class ServiceManager {
+  constructor(path) {
+    this.path = path;
   }
-  async #readServices() {
+  async #readFile() {
     try {
-      const data = await readFile(this.path, "utf-8");
-      return JSON.parse(data);
+      const data = await fs.readFile(this.path, "utf-8");
+      return data.trim() ? JSON.parse(data) : [];
     } catch (error) {
-      console.error("Error al leer el archivo de servicios:", error.message);
-      return [];
+      if (error.code === "ENOENT") return [];
+      throw error;
     }
   }
-  async #writeServices(services) {
-    await writeFile(this.path, JSON.stringify(services, null, 2), "utf-8");
+  async #writeFile(data) {
+    await fs.writeFile(this.path, JSON.stringify(data, null, 2));
   }
-  #generateId(services) {
-    if (services.length === 0) return 1;
-    const maxId = Math.max(...services.map((service) => service.id));
-    return maxId + 1;
+  #validate(data) {
+    const { name, description, duration, price, category, available } = data;
+    if (typeof name !== "string" || !name.trim())
+      throw new HttpError(400, "name es obligatorio y debe ser un string");
+    if (typeof description !== "string" || !description.trim())
+      throw new HttpError(400, "description es obligatorio y debe ser un string");
+    if (typeof duration !== "number" || !(duration > 0))
+      throw new HttpError(400, "duration debe ser un número mayor a 0 (minutos)");
+    if (typeof price !== "number" || price < 0)
+      throw new HttpError(400, "price debe ser un número mayor o igual a 0");
+    if (typeof category !== "string" || !category.trim())
+      throw new HttpError(400, "category es obligatorio y debe ser un string");
+    if (typeof available !== "boolean")
+      throw new HttpError(400, "available debe ser true o false");
+    return {
+      name: name.trim(),
+      description: description.trim(),
+      duration,
+      price,
+      category: category.trim(),
+      available,
+    };
   }
-  async getServices({ category, available } = {}) {
-    let services = await this.#readServices();
-    if (category !== undefined) {
-      const wanted = String(category).toLowerCase();
-      services = services.filter(
-        (service) => String(service.category).toLowerCase() === wanted
-      );
-    }
-    if (available !== undefined) {
-      services = services.filter((service) => service.available === available);
-    }
-    return services;
+  async getServices() {
+    return await this.#readFile();
   }
   async getServiceById(id) {
-    const services = await this.#readServices();
-    const service = services.find((service) => service.id === Number(id));
-    if (!service) {
-      return { error: `No se encontró ningún servicio con id ${id}` };
-    }
+    const services = await this.#readFile();
+    const service = services.find((s) => s.id === id);
+    if (!service) throw new HttpError(404, `No existe el servicio con id ${id}`);
     return service;
   }
-  async addService(serviceData) {
-    const missingFields = REQUIRED_FIELDS.filter(
-      (field) => serviceData?.[field] === undefined || serviceData[field] === ""
-    );
-    if (missingFields.length > 0) {
-      return {
-        error: `Servicio incompleto. Faltan los campos: ${missingFields.join(
-          ", "
-        )}`,
-      };
-    }
-    const services = await this.#readServices();
-    const newService = {
-      id: this.#generateId(services),
-      name: serviceData.name,
-      description: serviceData.description,
-      duration: serviceData.duration,
-      price: serviceData.price,
-      category: serviceData.category,
-      available: serviceData.available,
-    };
+  async addService(data) {
+    const validated = this.#validate(data);
+    const services = await this.#readFile();
+    const newService = { id: crypto.randomUUID(), ...validated };
     services.push(newService);
-    await this.#writeServices(services);
+    await this.#writeFile(services);
     return newService;
   }
-  async updateService(id, updatedData = {}) {
-    const services = await this.#readServices();
-    const index = services.findIndex((service) => service.id === Number(id));
-    if (index === -1) {
-      return { error: `No se encontró ningún servicio con id ${id}` };
-    }
-    const safeData = {};
-    for (const field of REQUIRED_FIELDS) {
-      if (updatedData[field] !== undefined) {
-        safeData[field] = updatedData[field];
-      }
-    }
-    services[index] = {
-      ...services[index],
-      ...safeData,
-    };
-    await this.#writeServices(services);
+  async updateService(id, data) {
+    const validated = this.#validate(data);
+    const services = await this.#readFile();
+    const index = services.findIndex((s) => s.id === id);
+    if (index === -1) throw new HttpError(404, `No existe el servicio con id ${id}`);
+    services[index] = { id: services[index].id, ...validated };
+    await this.#writeFile(services);
     return services[index];
   }
   async deleteService(id) {
-    const services = await this.#readServices();
-    const index = services.findIndex((service) => service.id === Number(id));
-    if (index === -1) {
-      return { error: `No se encontró ningún servicio con id ${id}` };
-    }
-    const [deletedService] = services.splice(index, 1);
-    await this.#writeServices(services);
-    return {
-      message: `Servicio "${deletedService.name}" eliminado correctamente`,
-      deletedService,
-    };
+    const services = await this.#readFile();
+    const index = services.findIndex((s) => s.id === id);
+    if (index === -1) throw new HttpError(404, `No existe el servicio con id ${id}`);
+    const [deleted] = services.splice(index, 1);
+    await this.#writeFile(services);
+    return deleted;
   }
 }
