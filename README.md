@@ -2,11 +2,37 @@
 
 API REST hecha con Node.js, Express y FileSystem (persistencia en archivos JSON) para gestionar servicios y reservas de una peluquería.
 
-La API está organizada en tres capas:
+## Arquitectura en capas
 
-- **Routers**: definen los endpoints y los conectan con su controller (no tienen lógica).
-- **Controllers**: leen `req.params`, `req.query` y `req.body`, llaman al manager y responden con `res.status().json()`.
-- **Managers**: manejan la lógica de datos y la persistencia en los archivos JSON (no usan `req` ni `res`).
+El proyecto está organizado en capas, cada una con una única responsabilidad. Una request recorre este camino:
+
+```
+router → controller → service → repository → DAO → archivo JSON
+```
+
+| Capa | Carpeta | Responsabilidad |
+|------|---------|-----------------|
+| Router | `src/routes` | Define los endpoints y los conecta con su controller. No tiene lógica. |
+| Controller | `src/controllers` | Lee `req` (`params`, `query`, `body`), llama al service y responde con `res.status().json()`. |
+| Service | `src/services` | Contiene las reglas de negocio (validaciones, filtros, errores 404, incremento de `quantity`). No conoce `req` ni `res`. |
+| Repository | `src/repositories` | Ofrece métodos de acceso a datos (`getAll`, `getById`, `create`, `update`, `delete`) sin reglas de negocio. |
+| DAO | `src/dao` | Lee y escribe directamente los archivos JSON. No tiene lógica de negocio. |
+
+Reglas que respeta el proyecto:
+
+- `req` y `res` solo se usan en los controllers.
+- Solo los DAO acceden a los archivos JSON.
+- Las reglas de negocio viven solo en los services. Por ejemplo, si un mismo servicio se agrega dos veces a una reserva, `bookings.service.js` incrementa `quantity`.
+- El repository separa al service de la forma de persistencia: si más adelante se cambia el JSON por una base de datos (por ejemplo MongoDB), solo cambian el DAO y el repository.
+
+### Ejemplo de flujo: `POST /api/bookings/:bid/services/:sid`
+
+1. **Router**: conecta la ruta con `addServiceToBooking` del controller.
+2. **Controller**: toma `bid` y `sid` de `req.params` y llama a `bookingsService.addServiceToBooking`.
+3. **Service**: verifica que el servicio exista (usando `servicesService`), busca la reserva y suma `quantity` si el servicio ya estaba.
+4. **Repository**: `update` de la reserva.
+5. **DAO**: escribe el cambio en `bookings.json`.
+6. **Controller**: responde con `res.status(200).json(...)`.
 
 ## Instalación
 
@@ -107,12 +133,14 @@ Body de ejemplo (POST /api/bookings):
 
 ```
 src/
-├── config/        env.config.js
-├── controllers/   services.controller.js, bookings.controller.js
-├── managers/      ServiceManager.js, BookingManager.js
-├── routes/        services.router.js, bookings.router.js
-├── data/          services.json, bookings.json
-├── utils/         httpError.js
+├── config/         env.config.js
+├── controllers/    services.controller.js, bookings.controller.js
+├── services/       services.service.js, bookings.service.js
+├── repositories/   services.repository.js, bookings.repository.js
+├── dao/            services.dao.js, bookings.dao.js
+├── routes/         services.router.js, bookings.router.js
+├── data/           services.json, bookings.json
+├── utils/          httpError.js
 ├── app.js
 └── server.js
 ```
