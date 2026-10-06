@@ -4,9 +4,17 @@ export class ServicesDAO {
 constructor(model) {
     this.model = model;
 }
-async getAll() {
-    const services = await this.model.find().sort({ _id: 1 });
+async find(filter = {}, { sort = { _id: 1 }, skip = 0, limit = 0 } = {}) {
+    const services = await this.model
+    .find(filter)
+    .collation({ locale: "es", strength: 2 })
+    .sort(sort)
+    .skip(skip)
+    .limit(limit);
     return services.map((s) => s.toJSON());
+}
+async count(filter = {}) {
+    return await this.model.countDocuments(filter);
 }
 async getById(id) {
     if (!mongoose.isObjectIdOrHexString(id)) return null;

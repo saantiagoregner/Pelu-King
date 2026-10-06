@@ -3,9 +3,8 @@ import { sendError } from "../utils/httpError.js";
 import { emitEvent } from "../utils/emitEvent.js";
 export const getServices = async (req, res) => {
 try {
-    const { category, available } = req.query;
-    const services = await servicesService.getServices({ category, available });
-    res.status(200).json({ status: "success", payload: services });
+    const { docs, ...pagination } = await servicesService.getServicesPaginated(req.validatedQuery);
+    res.status(200).json({ status: "success", payload: docs, ...pagination });
 } catch (error) {
     sendError(res, error);
 }

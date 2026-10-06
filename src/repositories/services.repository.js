@@ -3,8 +3,11 @@ export class ServicesRepository {
 constructor(dao) {
     this.dao = dao;
 }
-async getAll() {
-    return await this.dao.getAll();
+async getAll(filter, options) {
+    return await this.dao.find(filter, options);
+}
+async count(filter) {
+    return await this.dao.count(filter);
 }
 async getById(id) {
     return await this.dao.getById(id);
@@ -19,5 +22,4 @@ async delete(id) {
     return await this.dao.delete(id);
 }
 }
-
 export default new ServicesRepository(servicesDAO);

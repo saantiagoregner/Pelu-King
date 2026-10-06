@@ -1,47 +1,47 @@
 import servicesRepository from "../repositories/services.repository.js";
 import { HttpError } from "../utils/httpError.js";
+import { escapeRegex } from "../utils/escapeRegex.js";
 export class ServicesService {
 constructor(repository) {
     this.repository = repository;
 }
-#validate(data) {
-    const { name, description, duration, price, category, available } = data;
-    if (typeof name !== "string" || !name.trim())
-    throw new HttpError(400, "name es obligatorio y debe ser un string");
-    if (typeof description !== "string" || !description.trim())
-    throw new HttpError(400, "description es obligatorio y debe ser un string");
-    if (typeof duration !== "number" || !(duration > 0))
-    throw new HttpError(400, "duration debe ser un número mayor a 0 (minutos)");
-    if (typeof price !== "number" || price < 0)
-    throw new HttpError(400, "price debe ser un número mayor o igual a 0");
-    if (typeof category !== "string" || !category.trim())
-    throw new HttpError(400, "category es obligatorio y debe ser un string");
-    if (typeof available !== "boolean")
-    throw new HttpError(400, "available debe ser true o false");
-    return {
-    name: name.trim(),
-    description: description.trim(),
-    duration,
-    price,
-    category: category.trim(),
-    available,
-    };
-}
-async getServices({ category, available } = {}) {
-    let services = await this.repository.getAll();
+#buildFilter({ category, available } = {}) {
+    const filter = {};
     if (category !== undefined) {
-    if (typeof category !== "string" || !category.trim())
-        throw new HttpError(400, "category debe ser un string no vacío");
-    const wanted = category.trim().toLowerCase();
-    services = services.filter((s) => s.category.toLowerCase() === wanted);
+    filter.category = { $regex: `^${escapeRegex(category.trim())}$`, $options: "i" };
     }
     if (available !== undefined) {
-    if (available !== "true" && available !== "false")
-        throw new HttpError(400, "available debe ser true o false");
-    const wanted = available === "true";
-    services = services.filter((s) => s.available === wanted);
+    filter.available = available === true || available === "true";
     }
-    return services;
+    return filter;
+}
+async getServices(filters = {}) {
+    return await this.repository.getAll(this.#buildFilter(filters));
+}
+async getServicesPaginated({ category, available, page = 1, limit = 10, sortBy, order = "asc" } = {}) {
+    const filter = this.#buildFilter({ category, available });
+    const direction = order === "desc" ? -1 : 1;
+    const sort = sortBy ? { [sortBy]: direction, _id: 1 } : { _id: direction };
+    const total = await this.repository.count(filter);
+    const totalPages = Math.ceil(total / limit);
+    const docs = await this.repository.getAll(filter, {
+    sort,
+      skip: (page - 1) * limit,
+    limit,
+    });
+    const hasPrevPage = page > 1;
+    const hasNextPage = page < totalPages;
+    return {
+    docs,
+    total,
+    page,
+    limit,
+    totalPages,
+    hasPrevPage,
+    hasNextPage,
+    prevPage: hasPrevPage ? page - 1 : null,
+    nextPage: hasNextPage ? page + 1 : null,
+    };
 }
 async getServiceById(id) {
     const service = await this.repository.getById(id);
@@ -49,12 +49,10 @@ async getServiceById(id) {
     return service;
 }
 async createService(data) {
-    const validated = this.#validate(data);
-    return await this.repository.create(validated);
+    return await this.repository.create(data);
 }
 async updateService(id, data) {
-    const validated = this.#validate(data);
-    const updated = await this.repository.update(id, validated);
+    const updated = await this.repository.update(id, data);
     if (!updated) throw new HttpError(404, `No existe el servicio con id ${id}`);
     return updated;
 }
