@@ -20,7 +20,7 @@ constructor(repository, servicesService) {
     if (!VALID_STATUS.includes(status))
     throw new HttpError(400, `status debe ser uno de: ${VALID_STATUS.join(", ")}`);
     return { clientName: clientName.trim(), clientEmail: clientEmail.trim(), date, time, status };
-} 
+}
 async createBooking(data) {
     const validated = this.#validate(data);
     return await this.repository.create({ ...validated, services: [] });
@@ -33,7 +33,10 @@ async getBookingById(id) {
 async addServiceToBooking(bid, sid) {
     await this.servicesService.getServiceById(sid);
     const booking = await this.getBookingById(bid);
-    const services = booking.services.map((s) => ({ ...s }));
+    const services = booking.services.map((s) => ({
+    service: String(s.service),
+    quantity: s.quantity,
+    }));
     const item = services.find((s) => s.service === sid);
     if (item) {
     item.quantity += 1;
