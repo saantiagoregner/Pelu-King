@@ -9,6 +9,9 @@ async create(data) {
 async getById(id) {
     return await this.dao.getById(id);
 }
+async getByIdPopulated(id) {
+    return await this.dao.getByIdPopulated(id);
+}
 async update(id, data) {
     return await this.dao.update(id, data);
 }

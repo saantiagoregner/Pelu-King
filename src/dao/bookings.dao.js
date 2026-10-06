@@ -13,6 +13,11 @@ async getById(id) {
     const booking = await this.model.findById(id);
     return booking ? booking.toJSON() : null;
 }
+async getByIdPopulated(id) {
+    if (!mongoose.isObjectIdOrHexString(id)) return null;
+    const booking = await this.model.findById(id).populate("services.service");
+    return booking ? booking.toJSON() : null;
+}
 async update(id, data) {
     if (!mongoose.isObjectIdOrHexString(id)) return null;
     const booking = await this.model.findByIdAndUpdate(id, data, {

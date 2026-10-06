@@ -20,7 +20,8 @@ try {
 export const addServiceToBooking = async (req, res) => {
 try {
     const { bid, sid } = req.params;
-    const booking = await bookingsService.addServiceToBooking(bid, sid);
+    const { quantity } = req.body;
+    const booking = await bookingsService.addServiceToBooking(bid, sid, quantity);
     res.status(200).json({ status: "success", payload: booking });
 } catch (error) {
     sendError(res, error);
