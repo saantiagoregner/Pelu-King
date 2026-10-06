@@ -1,7 +1,7 @@
 {
   "name": "peluking-api",
   "version": "1.0.0",
-  "description": "API REST de turnos y reservas con Express y MongoDB (Mongoose), organizada en capas",
+  "description": "API REST de turnos y reservas con Express, MongoDB (Mongoose), vistas Handlebars y Socket.io, organizada en capas",
   "main": "src/server.js",
   "type": "module",
   "scripts": {
@@ -11,6 +11,8 @@
   "dependencies": {
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "mongoose": "^9.11.0"
+    "express-handlebars": "^9.0.1",
+    "mongoose": "^9.11.0",
+    "socket.io": "^4.8.4"
   }
 }
