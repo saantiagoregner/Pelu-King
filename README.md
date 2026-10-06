@@ -1,13 +1,13 @@
 # Peluking - API de Turnos y Reservas
 
-API REST hecha con Node.js, Express y FileSystem (persistencia en archivos JSON) para gestionar servicios y reservas de una peluquería.
+API REST hecha con Node.js, Express y MongoDB (Mongoose) para gestionar servicios y reservas de una peluquería. Los datos se guardan en MongoDB Atlas.
 
 ## Arquitectura en capas
 
 El proyecto está organizado en capas, cada una con una única responsabilidad. Una request recorre este camino:
 
 ```
-router → controller → service → repository → DAO → archivo JSON
+router → controller → service → repository → DAO → MongoDB (Mongoose)
 ```
 
 | Capa | Carpeta | Responsabilidad |
@@ -15,24 +15,17 @@ router → controller → service → repository → DAO → archivo JSON
 | Router | `src/routes` | Define los endpoints y los conecta con su controller. No tiene lógica. |
 | Controller | `src/controllers` | Lee `req` (`params`, `query`, `body`), llama al service y responde con `res.status().json()`. |
 | Service | `src/services` | Contiene las reglas de negocio (validaciones, filtros, errores 404, incremento de `quantity`). No conoce `req` ni `res`. |
-| Repository | `src/repositories` | Ofrece métodos de acceso a datos (`getAll`, `getById`, `create`, `update`, `delete`) sin reglas de negocio. |
-| DAO | `src/dao` | Lee y escribe directamente los archivos JSON. No tiene lógica de negocio. |
+| Repository | `src/repositories` | Ofrece métodos de acceso a datos sin reglas de negocio. |
+| DAO | `src/dao` | Accede directamente a la base de datos usando los modelos de Mongoose. Sin lógica de negocio. |
+| Model | `src/models` | Define los esquemas de Mongoose de cada colección. |
 
-Reglas que respeta el proyecto:
+La migración de FileSystem a MongoDB solo modificó la capa de persistencia (DAO y modelos): los endpoints y su comportamiento externo son los mismos.
 
-- `req` y `res` solo se usan en los controllers.
-- Solo los DAO acceden a los archivos JSON.
-- Las reglas de negocio viven solo en los services. Por ejemplo, si un mismo servicio se agrega dos veces a una reserva, `bookings.service.js` incrementa `quantity`.
-- El repository separa al service de la forma de persistencia: si más adelante se cambia el JSON por una base de datos (por ejemplo MongoDB), solo cambian el DAO y el repository.
+## Modelos
 
-### Ejemplo de flujo: `POST /api/bookings/:bid/services/:sid`
-
-1. **Router**: conecta la ruta con `addServiceToBooking` del controller.
-2. **Controller**: toma `bid` y `sid` de `req.params` y llama a `bookingsService.addServiceToBooking`.
-3. **Service**: verifica que el servicio exista (usando `servicesService`), busca la reserva y suma `quantity` si el servicio ya estaba.
-4. **Repository**: `update` de la reserva.
-5. **DAO**: escribe el cambio en `bookings.json`.
-6. **Controller**: responde con `res.status(200).json(...)`.
+- **Service** (`service.model.js`): `name`, `description`, `duration`, `price`, `category`, `available`.
+- **Booking** (`booking.model.js`): `clientName`, `clientEmail`, `date`, `time`, `status` y `services: [{ service: ObjectId, quantity: Number }]`. Los servicios se guardan como referencia (`ObjectId`) al modelo `Service`, no como objeto completo.
+- **Message** (`message.model.js`): `user`, `message` (con `createdAt` y `updatedAt`).
 
 ## Instalación
 
@@ -42,11 +35,21 @@ cd Pelu-King
 npm install
 ```
 
-Creá tu archivo `.env` en base al `.env.example`:
+Creá tu archivo `.env` en base al `.env.example` y completá tu `MONGO_URI`:
 
 ```bash
 cp .env.example .env
 ```
+
+## Variables de entorno
+
+| Variable | Descripción | Ejemplo |
+| -------- | ----------- | ------- |
+| `PORT` | Puerto en el que corre la aplicación | `8080` |
+| `NODE_ENV` | Entorno de ejecución | `development` |
+| `MONGO_URI` | URI de conexión a MongoDB Atlas | `mongodb+srv://<usuario>:<password>@<cluster>.mongodb.net/peluking?retryWrites=true&w=majority` |
+
+El archivo `.env` no se sube al repositorio.
 
 ## Ejecución
 
@@ -55,14 +58,7 @@ npm start       # producción
 npm run dev     # modo desarrollo (reinicia al guardar)
 ```
 
-El servidor corre en `http://localhost:8080` (o en el puerto definido en `PORT`).
-
-## Variables de entorno
-
-| Variable   | Descripción                          | Ejemplo       |
-| ---------- | ------------------------------------ | ------------- |
-| `PORT`     | Puerto en el que corre la aplicación | `8080`        |
-| `NODE_ENV` | Entorno de ejecución                 | `development` |
+El servidor corre en `http://localhost:8080` (o en el puerto definido en `PORT`) una vez conectado a MongoDB.
 
 ## Endpoints
 
@@ -133,14 +129,14 @@ Body de ejemplo (POST /api/bookings):
 
 ```
 src/
-├── config/         env.config.js
+├── config/         env.config.js, db.config.js
 ├── controllers/    services.controller.js, bookings.controller.js
 ├── services/       services.service.js, bookings.service.js
 ├── repositories/   services.repository.js, bookings.repository.js
 ├── dao/            services.dao.js, bookings.dao.js
+├── models/         service.model.js, booking.model.js, message.model.js
 ├── routes/         services.router.js, bookings.router.js
-├── data/           services.json, bookings.json
-├── utils/          httpError.js
+├── utils/          httpError.js, jsonOptions.js
 ├── app.js
 └── server.js
 ```
