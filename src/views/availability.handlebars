@@ -1,0 +1,24 @@
+<section class="page-header">
+<h1>Disponibilidad</h1>
+<p class="subtitle">Qué servicios se pueden reservar ahora · se actualiza en tiempo real</p>
+</section>
+<div class="columns">
+<section class="column">
+    <h2>Disponibles <span id="available-count" class="count">{{available.length}}</span></h2>
+    <div id="available-list" class="list">
+    {{#each available}}
+        {{> serviceCard}}
+    {{/each}}
+    </div>
+    <p id="available-empty" class="empty{{#if available.length}} is-hidden{{/if}}">No hay servicios disponibles.</p>
+</section>
+<section class="column">
+    <h2>No disponibles <span id="unavailable-count" class="count">{{unavailable.length}}</span></h2>
+    <div id="unavailable-list" class="list">
+    {{#each unavailable}}
+        {{> serviceCard}}
+    {{/each}}
+    </div>
+    <p id="unavailable-empty" class="empty{{#if unavailable.length}} is-hidden{{/if}}">No hay servicios no disponibles.</p>
+</section>
+</div>

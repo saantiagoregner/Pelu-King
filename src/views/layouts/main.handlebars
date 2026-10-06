@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{{title}} | Peluking</title>
+<link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/views/services">💈 Peluking</a>
+    <nav class="nav">
+    <a href="/views/services">Servicios</a>
+    <a href="/views/availability">Disponibilidad</a>
+    </nav>
+    <span id="live-status" class="live-status">Conectando...</span>
+</header>
+<main class="container">
+    {{{body}}}
+</main>
+<div id="toast" class="toast"></div>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/socket.js"></script>
+</body>
+</html>

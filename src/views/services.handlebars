@@ -1,0 +1,10 @@
+<section class="page-header">
+<h1>Servicios</h1>
+<p class="subtitle"><span id="services-count">{{services.length}}</span> servicios · se actualiza en tiempo real</p>
+</section>
+<div id="services-list" class="grid">
+{{#each services}}
+    {{> serviceCard}}
+{{/each}}
+</div>
+<p id="services-empty" class="empty{{#if services.length}} is-hidden{{/if}}">Todavía no hay servicios cargados.</p>

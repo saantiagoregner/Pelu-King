@@ -1,0 +1,12 @@
+<article class="card" data-id="{{id}}">
+<header class="card-header">
+    <h3>{{name}}</h3>
+    <span class="badge {{#if available}}badge-ok{{else}}badge-off{{/if}}">{{#if available}}Disponible{{else}}No disponible{{/if}}</span>
+</header>
+<p class="description">{{description}}</p>
+<ul class="meta">
+    <li><span>Duración</span> {{duration}} min</li>
+    <li><span>Precio</span> {{formatPrice price}}</li>
+    <li><span>Categoría</span> {{category}}</li>
+</ul>
+</article>
