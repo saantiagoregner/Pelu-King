@@ -1,10 +1,15 @@
+import http from "http";
 import app from "./app.js";
 import { PORT } from "./config/env.config.js";
 import { connectDB } from "./config/db.config.js";
+import { initSocket } from "./config/socket.config.js";
 const startServer = async () => {
 try {
     await connectDB();
-    app.listen(PORT, () => {
+    const httpServer = http.createServer(app);
+    const io = initSocket(httpServer);
+    app.set("io", io);
+    httpServer.listen(PORT, () => {
     console.log(`Servidor escuchando en http://localhost:${PORT}`);
     });
 } catch (error) {
@@ -12,4 +17,5 @@ try {
     process.exit(1);
 }
 };
+
 startServer();
