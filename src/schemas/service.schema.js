@@ -1,11 +1,12 @@
 import { z } from "zod";
+import { strictBody } from "./common.schema.js";
 const SORT_FIELDS = ["name", "price", "duration", "category"];
 const requiredString = (field) =>
 z
     .string({ error: `${field} es obligatorio y debe ser un string` })
     .trim()
     .min(1, `${field} no puede estar vacío`);
-export const serviceBodySchema = z.object({
+export const serviceBodySchema = strictBody({
 name: requiredString("name"),
 description: requiredString("description"),
 duration: z

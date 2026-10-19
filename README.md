@@ -162,6 +162,8 @@ Respuesta de ejemplo de `GET /api/services?sortBy=price&order=desc&page=1&limit=
 | `hasPrevPage` / `hasNextPage` | Si existe una página anterior / siguiente |
 | `prevPage` / `nextPage` | Número de la página anterior / siguiente (`null` si no existe) |
 
+Si se pide una página que no existe (por ejemplo `page=9` con 4 páginas), `payload` viene vacío y `prevPage` nunca supera `totalPages` (en el ejemplo sería `4`).
+
 ## Validaciones
 
 Las validaciones se hacen con [Zod](https://zod.dev) en `src/schemas` y se aplican con el middleware `validate` (`src/middlewares/validate.middleware.js`) directamente en los routers. Si los datos son inválidos, la API responde `400` con un mensaje claro y la request **no llega** al controller ni a MongoDB. Los esquemas de Mongoose quedan como una segunda red de seguridad, no como la validación principal.
@@ -169,12 +171,14 @@ Las validaciones se hacen con [Zod](https://zod.dev) en `src/schemas` y se aplic
 | Endpoint | Qué se valida |
 |----------|---------------|
 | `GET /api/services` | Query params `category`, `available`, `page`, `limit`, `sortBy` y `order` |
+| `GET`, `PUT`, `DELETE /api/services/:sid` | `sid` debe ser un id válido de MongoDB (si no, `400`) |
 | `POST /api/services` | `name`, `description`, `category` (texto no vacío), `duration` (número > 0), `price` (número >= 0), `available` (boolean) |
 | `PUT /api/services/:sid` | Los mismos campos que al crear (el PUT reemplaza todos los datos) |
 | `POST /api/bookings` | `clientName` (texto no vacío), `clientEmail` (email), `date` (`YYYY-MM-DD` y fecha real), `time` (`HH:MM` 24hs), `status` (opcional: `pending`, `confirmed`, `cancelled`) |
+| `GET /api/bookings/:bid` | `bid` debe ser un id válido de MongoDB (si no, `400`) |
 | `POST /api/bookings/:bid/services/:sid` | `bid` y `sid` deben ser ids válidos de MongoDB; `quantity` es opcional (entero >= 1, por defecto `1`) |
 
-Los campos que no forman parte del esquema se descartan. Ejemplo de error:
+Los esquemas de los `body` son estrictos: si se envía un campo que no forma parte del esquema (por ejemplo `color` al crear un servicio, o `services` al crear una reserva), la API responde `400` con el mensaje `Campos no permitidos: ...` en lugar de descartarlo en silencio. Ejemplo de error:
 
 ```
 POST /api/services   { "name": " ", "price": -5 }
@@ -272,7 +276,7 @@ src/
 ├── views/          layouts/main.handlebars, partials/serviceCard.handlebars,
 │                   services.handlebars, availability.handlebars
 ├── public/         css/styles.css, js/socket.js
-├── utils/          httpError.js, jsonOptions.js, emitEvent.js, escapeRegex.js
+├── utils/          httpError.js, jsonOptions.js, emitEvent.js, escapeRegex.js, pagination.js
 ├── app.js
 └── server.js
 ```

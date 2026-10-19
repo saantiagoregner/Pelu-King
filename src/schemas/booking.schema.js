@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { objectIdSchema } from "./common.schema.js";
+import { objectIdSchema, strictBody } from "./common.schema.js";
 const STATUS = ["pending", "confirmed", "cancelled"];
 const isRealDate = (value) => {
 const date = new Date(`${value}T00:00:00Z`);
 return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 };
-export const createBookingBodySchema = z.object({
+export const createBookingBodySchema = strictBody({
 clientName: z
     .string({ error: "clientName es obligatorio y debe ser un string" })
     .trim()
@@ -26,10 +26,10 @@ status: z
     .default("pending"),
 });
 export const addServiceParamsSchema = z.object({
-  bid: objectIdSchema("bid"),
-  sid: objectIdSchema("sid"),
+bid: objectIdSchema("bid"),
+sid: objectIdSchema("sid"),
 });
-export const addServiceBodySchema = z.object({
+export const addServiceBodySchema = strictBody({
 quantity: z
     .number({ error: "quantity debe ser un número entero mayor o igual a 1" })
     .int("quantity debe ser un número entero mayor o igual a 1")
